@@ -12,7 +12,7 @@ urlpatterns = [
     path('check-status/<int:order_id>/', views.check_payment_status, name='check_payment_status'),
     
     # Webhook
-    path('webhook/stripe/', views.stripe_webhook, name='stripe_webhook'),
+    # path('webhook/stripe/', views.stripe_webhook, name='stripe_webhook'),
     
     # Legacy URLs (backward compatibility)
     path('process/', views.process_checkout, name='process_checkout'),

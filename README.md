@@ -34,6 +34,8 @@ A plataforma segue a identidade visual do site [invisibilidown.org](https://invi
    ```bash
    cd c:\Users\User\Documents\Projetos\Site\Invisibilidown
    docker-compose up -d
+   docker compose exec web python manage.py migrate
+
    ```
 
 2. **Access the application:**

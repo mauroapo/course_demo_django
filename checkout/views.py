@@ -157,46 +157,46 @@ def payment_cancel(request):
     return redirect('cart')
 
 
-@csrf_exempt
-@require_POST
-def stripe_webhook(request):
-    """Handle Stripe webhooks."""
-    payload = request.body
-    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+# @csrf_exempt
+# @require_POST
+# def stripe_webhook(request):
+#     """Handle Stripe webhooks."""
+#     payload = request.body
+#     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
     
-    print("=" * 50)
-    print("STRIPE WEBHOOK RECEIVED")
-    print("=" * 50)
+#     print("=" * 50)
+#     print("STRIPE WEBHOOK RECEIVED")
+#     print("=" * 50)
     
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
-        )
-        print(f"Event Type: {event['type']}")
-        print(f"Event ID: {event['id']}")
-    except ValueError as e:
-        print(f"Invalid payload: {e}")
-        return HttpResponse(status=400)
-    except stripe.error.SignatureVerificationError as e:
-        print(f"Invalid signature: {e}")
-        return HttpResponse(status=400)
+#     try:
+#         event = stripe.Webhook.construct_event(
+#             payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+#         )
+#         print(f"Event Type: {event['type']}")
+#         print(f"Event ID: {event['id']}")
+#     except ValueError as e:
+#         print(f"Invalid payload: {e}")
+#         return HttpResponse(status=400)
+#     except stripe.error.SignatureVerificationError as e:
+#         print(f"Invalid signature: {e}")
+#         return HttpResponse(status=400)
     
-    # Handle the event
-    if event['type'] == 'payment_intent.succeeded':
-        payment_intent = event['data']['object']
-        print(f"Payment Intent ID: {payment_intent['id']}")
-        print(f"Amount: {payment_intent['amount']}")
-        handle_payment_success(payment_intent)
+#     # Handle the event
+#     if event['type'] == 'payment_intent.succeeded':
+#         payment_intent = event['data']['object']
+#         print(f"Payment Intent ID: {payment_intent['id']}")
+#         print(f"Amount: {payment_intent['amount']}")
+#         handle_payment_success(payment_intent)
     
-    elif event['type'] == 'payment_intent.payment_failed':
-        payment_intent = event['data']['object']
-        print(f"Payment Failed - Intent ID: {payment_intent['id']}")
-        handle_payment_failed(payment_intent)
+#     elif event['type'] == 'payment_intent.payment_failed':
+#         payment_intent = event['data']['object']
+#         print(f"Payment Failed - Intent ID: {payment_intent['id']}")
+#         handle_payment_failed(payment_intent)
     
-    else:
-        print(f"Unhandled event type: {event['type']}")
+#     else:
+#         print(f"Unhandled event type: {event['type']}")
     
-    return HttpResponse(status=200)
+#     return HttpResponse(status=200)
 
 
 @transaction.atomic
