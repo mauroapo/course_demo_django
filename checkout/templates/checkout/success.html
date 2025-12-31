@@ -1,0 +1,90 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Pagamento Confirmado - Plataforma de Cursos{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto; text-align: center;">
+    <div class="success-icon">✓</div>
+    
+    <h1 class="page-title">Pagamento Confirmado!</h1>
+    
+    <p style="font-size: 1.125rem; color: var(--text-gray); margin-bottom: var(--spacing-lg);">
+        Sua compra foi realizada com sucesso!
+    </p>
+
+    <div class="card mb-2">
+        <div class="card-body">
+            <h2 class="card-title">Detalhes do Pedido</h2>
+            
+            <div style="text-align: left;">
+                <div style="margin-bottom: var(--spacing-md);">
+                    <strong>Pedido #{{ order.id }}</strong><br>
+                    <span style="color: var(--text-gray); font-size: 0.875rem;">
+                        {{ order.created_at|date:"d/m/Y H:i" }}
+                    </span>
+                </div>
+
+                <div style="margin-bottom: var(--spacing-md);">
+                    <strong>Cursos Adquiridos:</strong>
+                    <ul style="margin-top: var(--spacing-sm); padding-left: var(--spacing-lg);">
+                        {% for item in order.items.all %}
+                        <li>{{ item.course.name }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div style="padding-top: var(--spacing-md); border-top: 1px solid var(--border-gray);">
+                    <div style="display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 700;">
+                        <span>Total Pago:</span>
+                        <span style="color: var(--primary-purple);">R$ {{ order.total_amount }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-2" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05)); border-color: #22C55E;">
+        <div class="card-body">
+            <h3 style="color: #16A34A; margin-bottom: var(--spacing-sm);">🎉 Parabéns!</h3>
+            <p style="color: #15803D;">
+                Você já pode acessar seus cursos e começar a aprender!
+            </p>
+        </div>
+    </div>
+
+    <a href="{% url 'my_courses' %}" class="btn btn-primary btn-lg" style="width: 100%;">
+        Ir para Meus Cursos
+    </a>
+
+    <a href="{% url 'home' %}" class="btn btn-outline mt-2" style="width: 100%;">
+        Voltar ao Início
+    </a>
+</div>
+
+<style>
+    .success-icon {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #22C55E, #16A34A);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        margin: var(--spacing-lg) auto;
+        animation: scaleIn 0.5s ease-out;
+    }
+
+    @keyframes scaleIn {
+        from {
+            transform: scale(0);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+</style>
+{% endblock %}

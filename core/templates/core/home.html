@@ -1,0 +1,56 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Home - Plataforma de Cursos{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Bem-vindo, {{ user.first_name|default:user.email }}!</h1>
+
+<!-- Meus Cursos Carousel -->
+<div class="carousel-container">
+    <h2 class="carousel-title">Meus Cursos</h2>
+    {% if my_courses %}
+    <div class="carousel">
+        {% for course in my_courses %}
+        <div class="carousel-item">
+            <a href="{% url 'course_redirect' course.id %}">
+                <div class="card">
+                    <img src="{{ course.image_url }}" alt="{{ course.name }}" class="card-img">
+                    <div class="card-body">
+                        <h3 class="card-title">{{ course.name }}</h3>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="color: var(--text-gray);">Você ainda não possui cursos. <a href="{% url 'acquire_courses' %}"
+            style="color: var(--primary-purple); font-weight: 600;">Adquira seu primeiro curso!</a></p>
+    {% endif %}
+</div>
+
+<!-- Cursos Mais Recentes Carousel -->
+<div class="carousel-container">
+    <h2 class="carousel-title">Cursos Mais Recentes</h2>
+    {% if recent_courses %}
+    <div class="carousel">
+        {% for course in recent_courses %}
+        <div class="carousel-item">
+            <div class="card">
+                <img src="{{ course.image_url }}" alt="{{ course.name }}" class="card-img">
+                <div class="card-body">
+                    <h3 class="card-title">{{ course.name }}</h3>
+                    <p class="card-price">R$ {{ course.price }}</p>
+                    <a href="{% url 'add_to_cart' course.id %}" class="btn btn-primary btn-icon">
+                        🛒 Adicionar ao Carrinho
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="color: var(--text-gray);">Nenhum curso disponível no momento.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Adquirir Cursos - Plataforma de Cursos{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Adquirir Cursos</h1>
+
+<!-- Search and Filters -->
+<div style="display: flex; gap: var(--spacing-md); margin-bottom: var(--spacing-lg); flex-wrap: wrap;">
+    <div class="form-search" style="flex: 1; min-width: 250px;">
+        <form method="get" style="display: flex; gap: var(--spacing-sm);">
+            <div style="position: relative; flex: 1;">
+                <span class="form-search-icon">🔍</span>
+                <input type="text" name="search" class="form-input" placeholder="Buscar cursos..."
+                    value="{{ search_query }}">
+            </div>
+            <select name="sort" class="form-select" style="width: auto;" onchange="this.form.submit()">
+                <option value="">Mais Recentes</option>
+                <option value="price_asc" class="{% if sort_by == 'price_asc' %}selected{% endif %}">Menor Preço
+                </option>
+                <option value="price_desc" class="{% if sort_by == 'price_desc' %}selected{% endif %}">Maior Preço
+                </option>
+            </select>
+        </form>
+    </div>
+</div>
+
+<!-- Courses Grid -->
+{% if courses %}
+<div class="grid">
+    {% for course in courses %}
+    <div class="card">
+        <img src="{{ course.image_url }}" alt="{{ course.name }}" class="card-img">
+        <div class="card-body">
+            <h3 class="card-title">{{ course.name }}</h3>
+            {% if course.description %}
+            <p class="card-description">{{ course.description|truncatewords:15 }}</p>
+            {% endif %}
+            <p class="card-price">R$ {{ course.price }}</p>
+            <a href="{% url 'add_to_cart' course.id %}" class="btn btn-secondary btn-icon" style="width: 100%;">
+                🛒 Adicionar ao Carrinho
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center">
+        <p style="color: var(--text-gray);">
+            {% if search_query %}
+            Nenhum curso disponível para "{{ search_query }}".
+            {% else %}
+            Nenhum curso disponível no momento.
+            {% endif %}
+        </p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

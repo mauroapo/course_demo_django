@@ -1,0 +1,47 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Meus Cursos - Plataforma de Cursos{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Meus Cursos</h1>
+
+<!-- Search -->
+<div class="form-search">
+    <form method="get">
+        <span class="form-search-icon">🔍</span>
+        <input type="text" name="search" class="form-input" placeholder="Buscar cursos..." value="{{ search_query }}">
+    </form>
+</div>
+
+<!-- Courses Grid -->
+{% if courses %}
+<div class="grid">
+    {% for course in courses %}
+    <a href="{% url 'course_detail' course.id %}">
+        <div class="card">
+            <img src="{{ course.image_url }}" alt="{{ course.name }}" class="card-img">
+            <div class="card-body">
+                <h3 class="card-title">{{ course.name }}</h3>
+                {% if course.description %}
+                <p class="card-description">{{ course.description|truncatewords:15 }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center">
+        <p style="color: var(--text-gray); margin-bottom: var(--spacing-md);">
+            {% if search_query %}
+            Nenhum curso encontrado para "{{ search_query }}".
+            {% else %}
+            Você ainda não possui cursos.
+            {% endif %}
+        </p>
+        <a href="{% url 'acquire_courses' %}" class="btn btn-primary">Adquirir Cursos</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

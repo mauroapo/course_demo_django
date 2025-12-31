@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=ong_platform
+      - POSTGRES_USER=ong_user
+      - POSTGRES_PASSWORD=ong_password
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ong_user -d ong_platform"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    command: gunicorn --bind 0.0.0.0:8000 --workers 3 ong_platform.wsgi:application
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    expose:
+      - "8000"
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-dev-key-change-in-production
+      - DATABASE_URL=postgresql://ong_user:ong_password@db:5432/ong_platform
+      - ALLOWED_HOSTS=localhost,127.0.0.1,80.91.86.135,lunar.salesforcedevhelp.com,salesforcedevhelp.com
+      - COURSE_AREA_BASE_URL=http://localhost:7000
+    depends_on:
+      db:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media:ro
+    depends_on:
+      - web
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:

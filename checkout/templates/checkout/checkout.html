@@ -1,0 +1,226 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Checkout - Plataforma de Cursos{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Finalizar Compra</h1>
+
+<div style="max-width: 900px; margin: 0 auto;">
+    <div class="card mb-2">
+        <div class="card-body">
+            <h2 class="card-title">Resumo do Pedido</h2>
+
+            {% for item in cart_items %}
+            <div style="display: flex; justify-content: space-between; padding: var(--spacing-sm) 0; border-bottom: 1px solid var(--border-gray);">
+                <span>{{ item.course.name }}</span>
+                <span style="font-weight: 600;">R$ {{ item.course.price }}</span>
+            </div>
+            {% endfor %}
+
+            <div style="display: flex; justify-content: space-between; padding: var(--spacing-md) 0; font-size: 1.25rem; font-weight: 700;">
+                <span>Total</span>
+                <span style="color: var(--primary-purple);">R$ {{ total }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title">Forma de Pagamento</h2>
+            
+            <!-- Payment Method Selection -->
+            <div class="payment-methods">
+                <button type="button" class="payment-method-btn active" data-method="card">
+                    💳 Cartão de Crédito
+                </button>
+                <button type="button" class="payment-method-btn" data-method="pix">
+                    🇧🇷 PIX
+                </button>
+            </div>
+
+            <!-- Credit Card Form -->
+            <div id="card-payment" class="payment-form">
+                <form id="payment-form">
+                    <div id="card-element" class="stripe-element"></div>
+                    <div id="card-errors" class="error-message"></div>
+                    
+                    <button type="submit" id="submit-button" class="btn btn-primary" style="width: 100%; margin-top: var(--spacing-md);">
+                        <span id="button-text">Pagar R$ {{ total }}</span>
+                        <span id="spinner" class="spinner" style="display: none;"></span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- PIX Payment -->
+            <div id="pix-payment" class="payment-form" style="display: none;">
+                <p style="color: var(--text-gray); margin-bottom: var(--spacing-md);">
+                    Você será redirecionado para gerar o código PIX.
+                </p>
+                <a href="{% url 'checkout_pix' %}" class="btn btn-primary" style="width: 100%;">
+                    Gerar Código PIX
+                </a>
+            </div>
+
+            <a href="{% url 'cart' %}" class="btn btn-outline mt-2" style="width: 100%; text-align: center;">
+                Voltar ao Carrinho
+            </a>
+        </div>
+    </div>
+</div>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    // Initialize Stripe
+    const stripe = Stripe('{{ stripe_publishable_key }}');
+    const elements = stripe.elements();
+    
+    // Create card element
+    const cardElement = elements.create('card', {
+        style: {
+            base: {
+                fontSize: '16px',
+                color: '#1F2937',
+                '::placeholder': {
+                    color: '#9CA3AF'
+                }
+            },
+            invalid: {
+                color: '#EF4444'
+            }
+        }
+    });
+    
+    cardElement.mount('#card-element');
+    
+    // Handle card errors
+    cardElement.on('change', function(event) {
+        const displayError = document.getElementById('card-errors');
+        if (event.error) {
+            displayError.textContent = event.error.message;
+        } else {
+            displayError.textContent = '';
+        }
+    });
+    
+    // Handle payment method selection
+    const paymentMethodBtns = document.querySelectorAll('.payment-method-btn');
+    const cardPayment = document.getElementById('card-payment');
+    const pixPayment = document.getElementById('pix-payment');
+    
+    paymentMethodBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            paymentMethodBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const method = this.dataset.method;
+            if (method === 'card') {
+                cardPayment.style.display = 'block';
+                pixPayment.style.display = 'none';
+            } else {
+                cardPayment.style.display = 'none';
+                pixPayment.style.display = 'block';
+            }
+        });
+    });
+    
+    // Handle form submission
+    const form = document.getElementById('payment-form');
+    const submitButton = document.getElementById('submit-button');
+    const buttonText = document.getElementById('button-text');
+    const spinner = document.getElementById('spinner');
+    
+    form.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        // Disable button and show spinner
+        submitButton.disabled = true;
+        buttonText.style.display = 'none';
+        spinner.style.display = 'inline-block';
+        
+        // Confirm payment
+        const {error, paymentIntent} = await stripe.confirmCardPayment(
+            '{{ client_secret }}',
+            {
+                payment_method: {
+                    card: cardElement
+                }
+            }
+        );
+        
+        if (error) {
+            // Show error
+            document.getElementById('card-errors').textContent = error.message;
+            submitButton.disabled = false;
+            buttonText.style.display = 'inline';
+            spinner.style.display = 'none';
+        } else {
+            // Payment successful
+            if (paymentIntent.status === 'succeeded') {
+                window.location.href = '{% url "payment_success" order.id %}';
+            }
+        }
+    });
+</script>
+
+<style>
+    .payment-methods {
+        display: flex;
+        gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-lg);
+    }
+    
+    .payment-method-btn {
+        flex: 1;
+        padding: var(--spacing-md);
+        border: 2px solid var(--border-gray);
+        border-radius: var(--radius-md);
+        background: white;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    
+    .payment-method-btn:hover {
+        border-color: var(--primary-purple);
+    }
+    
+    .payment-method-btn.active {
+        border-color: var(--primary-purple);
+        background: linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(124, 58, 237, 0.1));
+    }
+    
+    .stripe-element {
+        padding: var(--spacing-md);
+        border: 1px solid var(--border-gray);
+        border-radius: var(--radius-md);
+        background: white;
+    }
+    
+    .error-message {
+        color: #EF4444;
+        font-size: 0.875rem;
+        margin-top: var(--spacing-sm);
+        min-height: 20px;
+    }
+    
+    .spinner {
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    @media (max-width: 768px) {
+        .payment-methods {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}

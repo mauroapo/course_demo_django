@@ -1,0 +1,267 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Resultado do Quiz - {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="quiz-result-container">
+    <!-- Result Header -->
+    <div class="result-header {% if attempt.passed %}passed{% else %}failed{% endif %}">
+        <div class="result-icon">
+            {% if attempt.passed %}✓{% else %}✗{% endif %}
+        </div>
+        <h1 class="result-title">
+            {% if attempt.passed %}
+            Parabéns! Você foi aprovado!
+            {% else %}
+            Não foi desta vez...
+            {% endif %}
+        </h1>
+        <div class="result-score">{{ attempt.score }}%</div>
+        <p class="result-message">
+            {% if attempt.passed %}
+            Você atingiu a nota mínima de {{ quiz.passing_score }}%.
+            {% else %}
+            Você precisa de {{ quiz.passing_score }}% para ser aprovado.
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- Answers Review -->
+    <div class="card mb-2">
+        <div class="card-body">
+            <h2 class="card-title">Revisão das Respostas</h2>
+
+            {% for answer in answers %}
+            <div class="answer-review {% if answer.is_correct %}correct{% else %}incorrect{% endif %}">
+                <div class="answer-header">
+                    <span class="answer-number">Questão {{ forloop.counter }}</span>
+                    <span class="answer-status">
+                        {% if answer.is_correct %}
+                        ✓ Correta
+                        {% else %}
+                        ✗ Incorreta
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="answer-question">
+                    {{ answer.question.question_text }}
+                </div>
+
+                <!-- Multiple Choice / True-False -->
+                {% if answer.selected_option %}
+                <div class="answer-given">
+                    <strong>Sua resposta:</strong> {{ answer.selected_option.option_text }}
+                </div>
+
+                {% if not answer.is_correct %}
+                <div class="answer-correct">
+                    <strong>Resposta correta:</strong>
+                    {% for option in answer.question.options.all %}
+                    {% if option.is_correct %}
+                    {{ option.option_text }}
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Short Answer -->
+                {% elif answer.text_answer %}
+                <div class="answer-given">
+                    <strong>Sua resposta:</strong> {{ answer.text_answer }}
+                </div>
+                <div class="answer-note">
+                    <em>Nota: Respostas dissertativas requerem correção manual.</em>
+                </div>
+                {% endif %}
+
+                <!-- Explanation -->
+                {% if answer.question.explanation %}
+                <div class="answer-explanation">
+                    <strong>💡 Explicação:</strong> {{ answer.question.explanation }}
+                </div>
+                {% endif %}
+
+                <div class="answer-points">
+                    {{ answer.points_earned }}/{{ answer.question.points }} pontos
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="result-actions">
+        {% if not attempt.passed and attempt.attempt_number < quiz.max_attempts %} <a
+            href="{% url 'quiz_take' quiz.id %}" class="btn btn-primary">
+            🔄 Tentar Novamente
+            </a>
+            {% endif %}
+
+            <a href="{% url 'quiz_view' quiz.id %}" class="btn btn-outline">
+                📊 Ver Todas as Tentativas
+            </a>
+
+            <a href="{% url 'course_detail' course.id %}" class="btn btn-outline">
+                📚 Voltar ao Curso
+            </a>
+    </div>
+</div>
+
+<style>
+    .quiz-result-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .result-header {
+        text-align: center;
+        padding: var(--spacing-xl);
+        border-radius: var(--radius-lg);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .result-header.passed {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05));
+        border: 2px solid #22C55E;
+    }
+
+    .result-header.failed {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+        border: 2px solid #EF4444;
+    }
+
+    .result-icon {
+        font-size: 4rem;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .result-header.passed .result-icon {
+        color: #22C55E;
+    }
+
+    .result-header.failed .result-icon {
+        color: #EF4444;
+    }
+
+    .result-title {
+        font-size: 2rem;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .result-score {
+        font-size: 3rem;
+        font-weight: 700;
+        margin: var(--spacing-md) 0;
+    }
+
+    .result-header.passed .result-score {
+        color: #22C55E;
+    }
+
+    .result-header.failed .result-score {
+        color: #EF4444;
+    }
+
+    .result-message {
+        color: var(--text-gray);
+        font-size: 1.125rem;
+    }
+
+    .answer-review {
+        padding: var(--spacing-md);
+        border-radius: var(--radius-md);
+        margin-bottom: var(--spacing-md);
+        border-left: 4px solid;
+    }
+
+    .answer-review.correct {
+        background: rgba(34, 197, 94, 0.05);
+        border-color: #22C55E;
+    }
+
+    .answer-review.incorrect {
+        background: rgba(239, 68, 68, 0.05);
+        border-color: #EF4444;
+    }
+
+    .answer-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .answer-number {
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+
+    .answer-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .answer-review.correct .answer-status {
+        background: #22C55E;
+        color: white;
+    }
+
+    .answer-review.incorrect .answer-status {
+        background: #EF4444;
+        color: white;
+    }
+
+    .answer-question {
+        font-size: 1.125rem;
+        margin-bottom: var(--spacing-md);
+        color: var(--text-dark);
+    }
+
+    .answer-given,
+    .answer-correct,
+    .answer-explanation,
+    .answer-note {
+        margin-top: var(--spacing-sm);
+        padding: var(--spacing-sm);
+        background: white;
+        border-radius: var(--radius-md);
+    }
+
+    .answer-correct {
+        border: 1px solid #22C55E;
+    }
+
+    .answer-explanation {
+        background: #FEF3C7;
+        border: 1px solid #F59E0B;
+    }
+
+    .answer-note {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+    }
+
+    .answer-points {
+        margin-top: var(--spacing-sm);
+        font-weight: 600;
+        color: var(--text-gray);
+    }
+
+    .result-actions {
+        display: flex;
+        gap: var(--spacing-md);
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: var(--spacing-lg);
+    }
+
+    @media (max-width: 768px) {
+        .result-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}

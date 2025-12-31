@@ -1,0 +1,138 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Pagamento PIX - Plataforma de Cursos{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Pagamento via PIX</h1>
+
+<div style="max-width: 600px; margin: 0 auto;">
+    <div class="card mb-2">
+        <div class="card-body" style="text-align: center;">
+            <h2 class="card-title">Total a Pagar</h2>
+            <div style="font-size: 2rem; font-weight: 700; color: var(--primary-purple); margin: var(--spacing-md) 0;">
+                R$ {{ total }}
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title">Escaneie o QR Code</h2>
+            
+            {% if pix_details %}
+            <div style="text-align: center; margin: var(--spacing-lg) 0;">
+                <div style="background: white; padding: var(--spacing-md); border-radius: var(--radius-md); display: inline-block;">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={{ pix_details.qr_code }}" 
+                         alt="QR Code PIX" 
+                         style="max-width: 250px;">
+                </div>
+            </div>
+
+            <div style="margin-top: var(--spacing-lg);">
+                <h3 style="font-size: 1rem; margin-bottom: var(--spacing-sm);">Ou copie o código PIX:</h3>
+                <div style="display: flex; gap: var(--spacing-sm);">
+                    <input type="text" 
+                           id="pix-code" 
+                           value="{{ pix_details.qr_code }}" 
+                           readonly 
+                           class="form-input" 
+                           style="flex: 1; font-family: monospace; font-size: 0.875rem;">
+                    <button onclick="copyPixCode()" class="btn btn-outline">
+                        📋 Copiar
+                    </button>
+                </div>
+            </div>
+
+            <div class="alert alert-info" style="margin-top: var(--spacing-lg);">
+                <strong>Aguardando pagamento...</strong><br>
+                Após realizar o pagamento, você será automaticamente redirecionado.
+            </div>
+
+            <div id="payment-status" style="margin-top: var(--spacing-md); text-align: center;">
+                <div class="spinner-large"></div>
+                <p style="color: var(--text-gray); margin-top: var(--spacing-sm);">Verificando pagamento...</p>
+            </div>
+            {% else %}
+            <div class="alert alert-warning">
+                Erro ao gerar código PIX. Por favor, tente novamente.
+            </div>
+            {% endif %}
+
+            <a href="{% url 'cart' %}" class="btn btn-outline mt-2" style="width: 100%; text-align: center;">
+                Cancelar e Voltar
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function copyPixCode() {
+        const pixCode = document.getElementById('pix-code');
+        pixCode.select();
+        document.execCommand('copy');
+        
+        // Show feedback
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = '✓ Copiado!';
+        btn.style.background = '#22C55E';
+        btn.style.color = 'white';
+        
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.background = '';
+            btn.style.color = '';
+        }, 2000);
+    }
+
+    // Poll for payment status
+    const orderId = {{ order.id }};
+    let pollInterval;
+
+    function checkPaymentStatus() {
+        fetch(`/checkout/check-status/${orderId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.is_paid) {
+                    clearInterval(pollInterval);
+                    window.location.href = `/checkout/success/${orderId}/`;
+                }
+            })
+            .catch(error => console.error('Error checking payment:', error));
+    }
+
+    // Check every 3 seconds
+    pollInterval = setInterval(checkPaymentStatus, 3000);
+
+    // Stop polling after 30 minutes
+    setTimeout(() => {
+        clearInterval(pollInterval);
+        document.getElementById('payment-status').innerHTML = 
+            '<p style="color: var(--text-gray);">Tempo limite excedido. Por favor, verifique seu pagamento.</p>';
+    }, 30 * 60 * 1000);
+</script>
+
+<style>
+    .alert-info {
+        background: #DBEAFE;
+        border: 1px solid #3B82F6;
+        color: #1E40AF;
+        padding: var(--spacing-md);
+        border-radius: var(--radius-md);
+    }
+
+    .spinner-large {
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(147, 51, 234, 0.2);
+        border-top-color: var(--primary-purple);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin: 0 auto;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}

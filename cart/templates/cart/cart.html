@@ -1,0 +1,51 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Carrinho - Plataforma de Cursos{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Carrinho de Compras</h1>
+
+{% if cart_items %}
+<div style="max-width: 800px;">
+    <!-- Cart Items -->
+    {% for item in cart_items %}
+    <div class="card mb-2">
+        <div class="card-body" style="display: flex; gap: var(--spacing-md); align-items: center;">
+            <img src="{{ item.course.image_url }}" alt="{{ item.course.name }}"
+                style="width: 120px; height: 80px; object-fit: cover; border-radius: var(--radius-md);">
+            <div style="flex: 1;">
+                <h3 class="card-title" style="margin-bottom: var(--spacing-xs);">{{ item.course.name }}</h3>
+                <p class="card-price" style="margin-bottom: 0;">R$ {{ item.course.price }}</p>
+            </div>
+            <form method="post" action="{% url 'remove_from_cart' item.course.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline"
+                    style="background: transparent; border-color: #EF4444; color: #EF4444;">
+                    🗑️ Remover
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Total -->
+    <div class="card mt-3">
+        <div class="card-body">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
+                <h3 style="margin: 0;">Total</h3>
+                <p class="card-price" style="margin: 0;">R$ {{ total }}</p>
+            </div>
+            <a href="{% url 'checkout' %}" class="btn btn-primary" style="width: 100%;">Finalizar Compra</a>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card" style="max-width: 600px;">
+    <div class="card-body text-center">
+        <p style="color: var(--text-gray); margin-bottom: var(--spacing-md);">Seu carrinho está vazio.</p>
+        <a href="{% url 'acquire_courses' %}" class="btn btn-primary">Adquirir Cursos</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

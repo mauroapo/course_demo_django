@@ -1,0 +1,225 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ quiz.title }} - {{ course.name }}{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+    <a href="{% url 'course_detail' course.id %}">{{ course.name }}</a>
+    <span>›</span>
+    <a href="{% url 'course_detail' course.id %}">{{ module.title }}</a>
+    <span>›</span>
+    <span>{{ quiz.title }}</span>
+</div>
+
+<div class="quiz-container">
+    <div class="quiz-header">
+        <h1 class="page-title">{{ quiz.title }}</h1>
+        {% if quiz.description %}
+        <p class="quiz-description">{{ quiz.description }}</p>
+        {% endif %}
+    </div>
+
+    <!-- Quiz Info -->
+    <div class="card mb-2">
+        <div class="card-body">
+            <h2 class="card-title">Informações do Quiz</h2>
+            <div class="quiz-info-grid">
+                <div class="quiz-info-item">
+                    <div class="quiz-info-label">Questões</div>
+                    <div class="quiz-info-value">{{ quiz_questions.count }}</div>
+                </div>
+                <div class="quiz-info-item">
+                    <div class="quiz-info-label">Nota Mínima</div>
+                    <div class="quiz-info-value">{{ quiz.passing_score }}%</div>
+                </div>
+                <div class="quiz-info-item">
+                    <div class="quiz-info-label">Tentativas</div>
+                    <div class="quiz-info-value">{{ attempts_count }}/{{ quiz.max_attempts }}</div>
+                </div>
+                {% if quiz.time_limit_minutes %}
+                <div class="quiz-info-item">
+                    <div class="quiz-info-label">Tempo Limite</div>
+                    <div class="quiz-info-value">{{ quiz.time_limit_minutes }} min</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Best Score -->
+    {% if best_score %}
+    <div class="card mb-2 success-card">
+        <div class="card-body">
+            <h3 class="card-title">✓ Aprovado!</h3>
+            <p>Melhor pontuação: <strong>{{ best_score.score }}%</strong></p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Previous Attempts -->
+    {% if attempts %}
+    <div class="card mb-2">
+        <div class="card-body">
+            <h2 class="card-title">Tentativas Anteriores</h2>
+            <div class="attempts-list">
+                {% for attempt in attempts %}
+                <div class="attempt-item">
+                    <div class="attempt-info">
+                        <span class="attempt-number">Tentativa {{ attempt.attempt_number }}</span>
+                        <span class="attempt-date">{{ attempt.started_at|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    <div class="attempt-score {% if attempt.passed %}passed{% else %}failed{% endif %}">
+                        {{ attempt.score }}%
+                        {% if attempt.passed %}✓{% else %}✗{% endif %}
+                    </div>
+                    <a href="{% url 'quiz_result' attempt.id %}" class="btn btn-outline btn-sm">Ver Respostas</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    <div class="quiz-actions">
+        <div style="display: flex; flex-direction: column; gap: var(--spacing-md); flex: 1;">
+            {% if can_attempt %}
+            <a href="{% url 'quiz_take' quiz.id %}" class="btn btn-primary btn-lg">
+                🎯 Iniciar Quiz
+            </a>
+            {% else %}
+            <div class="alert alert-warning">
+                Você atingiu o número máximo de tentativas ({{ quiz.max_attempts }}).
+            </div>
+            {% endif %}
+        </div>
+        <a href="{% url 'course_detail' course.id %}" class="btn btn-outline">
+            ← Voltar ao Curso
+        </a>
+    </div>
+</div>
+
+<style>
+    .quiz-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .quiz-description {
+        color: var(--text-gray);
+        margin-top: var(--spacing-sm);
+        font-size: 1.125rem;
+    }
+
+    .quiz-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: var(--spacing-md);
+        margin-top: var(--spacing-md);
+    }
+
+    .quiz-info-item {
+        text-align: center;
+        padding: var(--spacing-md);
+        background: var(--bg-gray);
+        border-radius: var(--radius-md);
+    }
+
+    .quiz-info-label {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .quiz-info-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-purple);
+    }
+
+    .success-card {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05));
+        border-color: #22C55E;
+    }
+
+    .attempts-list {
+        margin-top: var(--spacing-md);
+    }
+
+    .attempt-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--spacing-sm);
+        background: var(--bg-gray);
+        border-radius: var(--radius-md);
+        margin-bottom: var(--spacing-xs);
+        gap: var(--spacing-md);
+    }
+
+    .attempt-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .attempt-number {
+        font-weight: 600;
+    }
+
+    .attempt-date {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+    }
+
+    .attempt-score {
+        font-size: 1.25rem;
+        font-weight: 700;
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius-md);
+    }
+
+    .attempt-score.passed {
+        background: linear-gradient(135deg, #22C55E, #16A34A);
+        color: white;
+    }
+
+    .attempt-score.failed {
+        background: linear-gradient(135deg, #EF4444, #DC2626);
+        color: white;
+    }
+
+    .quiz-actions {
+        display: flex;
+        gap: var(--spacing-md);
+        margin-top: var(--spacing-lg);
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    .alert {
+        padding: var(--spacing-md);
+        border-radius: var(--radius-md);
+        margin: 0;
+        width: 100%;
+    }
+
+    .alert-warning {
+        background: #FEF3C7;
+        border: 1px solid #F59E0B;
+        color: #92400E;
+    }
+
+    @media (max-width: 768px) {
+        .attempt-item {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .quiz-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,183 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Realizar Quiz - {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="quiz-take-container">
+    <div class="quiz-take-header">
+        <h1 class="page-title">{{ quiz.title }}</h1>
+        <div class="attempt-badge">Tentativa {{ attempt_number }}/{{ quiz.max_attempts }}</div>
+    </div>
+
+    <form method="post" id="quizForm">
+        {% csrf_token %}
+
+        {% for qq in quiz_questions %}
+        <div class="card mb-2 question-card">
+            <div class="card-body">
+                <div class="question-header">
+                    <span class="question-number">Questão {{ forloop.counter }}</span>
+                    <span class="question-points">
+                        {{ qq.question.points }}
+                        {% if qq.question.points > 1 %}
+                        pontos
+                        {%else%}
+                        ponto
+                        {%endif%}</span>
+                </div>
+
+                <div class="question-text">
+                    {{ qq.question.question_text }}
+                </div>
+
+                <!-- Multiple Choice -->
+                {% if qq.question.question_type == 'MC' %}
+                <div class="options-list">
+                    {% for option in qq.question.options.all %}
+                    <label class="option-item">
+                        <input type="radio" name="question_{{ qq.question.id }}" value="{{ option.id }}" required>
+                        <span class="option-text">{{ option.option_text }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+
+                <!-- True/False -->
+                {% elif qq.question.question_type == 'TF' %}
+                <div class="options-list">
+                    {% for option in qq.question.options.all %}
+                    <label class="option-item">
+                        <input type="radio" name="question_{{ qq.question.id }}" value="{{ option.id }}" required>
+                        <span class="option-text">{{ option.option_text }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+
+                <!-- Short Answer -->
+                {% elif qq.question.question_type == 'SA' %}
+                <textarea name="question_{{ qq.question.id }}" class="form-input" rows="4"
+                    placeholder="Digite sua resposta aqui..." required></textarea>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="quiz-submit-actions">
+            <button type="submit" class="btn btn-primary btn-lg"
+                onclick="return confirm('Tem certeza que deseja enviar o quiz?')">
+                ✓ Enviar Quiz
+            </button>
+            <a href="{% url 'quiz_view' quiz.id %}" class="btn btn-outline">
+                ✗ Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .quiz-take-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .quiz-take-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-lg);
+        flex-wrap: wrap;
+        gap: var(--spacing-md);
+    }
+
+    .attempt-badge {
+        padding: 0.5rem 1rem;
+        background: linear-gradient(135deg, var(--primary-purple), var(--primary-orange));
+        color: white;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+    }
+
+    .question-card {
+        border-left: 4px solid var(--primary-purple);
+    }
+
+    .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .question-number {
+        font-weight: 700;
+        color: var(--primary-purple);
+        font-size: 1.125rem;
+    }
+
+    .question-points {
+        padding: 0.25rem 0.75rem;
+        background: var(--bg-gray);
+        border-radius: var(--radius-md);
+        font-size: 0.875rem;
+        color: var(--text-gray);
+    }
+
+    .question-text {
+        font-size: 1.125rem;
+        line-height: 1.6;
+        color: var(--text-dark);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .options-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .option-item {
+        display: flex;
+        align-items: center;
+        padding: var(--spacing-md);
+        background: var(--bg-gray);
+        border: 2px solid transparent;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .option-item:hover {
+        background: white;
+        border-color: var(--primary-purple);
+    }
+
+    .option-item input[type="radio"] {
+        margin-right: var(--spacing-sm);
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+
+    .option-item input[type="radio"]:checked+.option-text {
+        font-weight: 600;
+        color: var(--primary-purple);
+    }
+
+    .option-text {
+        flex: 1;
+        font-size: 1rem;
+    }
+
+    .quiz-submit-actions {
+        display: flex;
+        gap: var(--spacing-md);
+        margin-top: var(--spacing-lg);
+        justify-content: center;
+    }
+
+    @media (max-width: 768px) {
+        .quiz-submit-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}

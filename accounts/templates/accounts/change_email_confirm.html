@@ -1,0 +1,30 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Confirmar Email - Plataforma de Cursos{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Confirmar Alteração de Email</h1>
+
+<div class="card" style="max-width: 600px;">
+    <div class="card-body">
+        <p class="mb-2">Digite o código de verificação de 6 dígitos que enviamos para o novo email.</p>
+
+        <form method="post">
+            {% csrf_token %}
+
+            {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <span style="color: #EF4444; font-size: 0.875rem;">{{ field.errors }}</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="btn btn-primary">Confirmar</button>
+            <a href="{% url 'account' %}" class="btn btn-outline" style="margin-left: var(--spacing-sm);">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

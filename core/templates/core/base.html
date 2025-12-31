@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<!-- prettier-ignore-file -->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Plataforma de Cursos{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'core/css/main.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    {% if user.is_authenticated %}
+    <div class="app-container">
+        <!-- Hamburger Menu (Mobile) -->
+        <button class="hamburger" aria-label="Toggle menu">☰</button>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <a href="{% url 'home' %}">invisibiliDOWN</a>
+            </div>
+
+            <nav>
+                <ul class="sidebar-nav">
+                    <li>
+                        <a href="{% url 'my_courses' %}"
+                            class="{% if request.path == '/courses/my-courses/' %}active{% endif %}">
+                            📚 Meus Cursos
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'acquire_courses' %}"
+                            class="{% if request.path == '/courses/acquire/' %}active{% endif %}">
+                            🛒 Adquirir Cursos
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'account' %}" class="{% if request.path == '/account/' %}active{% endif %}">
+                            👤 Minha Conta
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'cart' %}" class="{% if request.path == '/cart/' %}active{% endif %}">
+                            🛍️ Carrinho
+                            {% if cart_item_count > 0 %}
+                            <span class="cart-badge">{{ cart_item_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn">Sair</button>
+            </form>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Messages -->
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="message message-{{ message.tags }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    {% else %}
+    <!-- Auth pages don't use sidebar -->
+    <!-- Messages for auth pages -->
+    {% if messages %}
+    <div class="messages auth-messages">
+        {% for message in messages %}
+        <div class="message message-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block auth_content %}{% endblock %}
+    {% endif %}
+
+    <script src="{% static 'core/js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

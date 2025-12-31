@@ -1,0 +1,207 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ course.name }} - Plataforma de Cursos{% endblock %}
+
+{% block content %}
+<div class="course-header">
+    <h1 class="page-title">{{ course.name }}</h1>
+    <div class="progress-bar-container">
+        <div class="progress-bar">
+            <div class="progress-bar-fill" style="width: {{ progress_percentage }}%"></div>
+        </div>
+        <span class="progress-text">{{ progress_percentage }}% Concluído ({{ completed_items }}/{{ total_items}})</span>
+    </div>
+</div>
+
+{% if course.description %}
+<div class="card mb-2">
+    <div class="card-body">
+        <p>{{ course.description }}</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- Modules -->
+{% for module in modules %}
+<div class="card mb-2">
+    <div class="card-body">
+        <h2 class="module-title">
+            <span class="module-number">Módulo {{ forloop.counter }}</span>
+            {{ module.title }}
+        </h2>
+
+        {% if module.description %}
+        <p class="module-description">{{ module.description }}</p>
+        {% endif %}
+
+        <!-- Lessons -->
+        {% if module.lessons.all %}
+        <div class="content-list">
+            <h3 class="content-list-title">📖 Lições</h3>
+            {% for lesson in module.lessons.all %}
+            <a href="{% url 'lesson_view' lesson.id %}"
+                class="content-item {% if lesson.id in lesson_progress %}completed{% endif %}">
+                <div class="content-item-icon">
+                    {% if lesson.id in lesson_progress %}✓{% else %}📄{% endif %}
+                </div>
+                <div class="content-item-info">
+                    <div class="content-item-title">{{ lesson.title }}</div>
+                    {% if lesson.duration_minutes %}
+                    <div class="content-item-meta">⏱️ {{ lesson.duration_minutes }} min</div>
+                    {% endif %}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Quizzes -->
+        {% if module.quizzes.all %}
+        <div class="content-list mt-2">
+            <h3 class="content-list-title">📝 Avaliações</h3>
+            {% for quiz in module.quizzes.all %}
+            <a href="{% url 'quiz_view' quiz.id %}"
+                class="content-item {% if quiz.id in quiz_progress %}completed{% endif %}">
+                <div class="content-item-icon">
+                    {% if quiz.id in quiz_progress %}✓{% else %}📝{% endif %}
+                </div>
+                <div class="content-item-info">
+                    <div class="content-item-title">{{ quiz.title }}</div>
+                    <div class="content-item-meta">
+                        Nota mínima: {{ quiz.passing_score }}% | Tentativas: {{ quiz.max_attempts }}
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% empty %}
+<div class="card">
+    <div class="card-body text-center">
+        <p style="color: var(--text-gray);">Este curso ainda não possui conteúdo disponível.</p>
+    </div>
+</div>
+{% endfor %}
+
+<style>
+    .course-header {
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .progress-bar-container {
+        margin-top: var(--spacing-md);
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 24px;
+        background: var(--bg-gray);
+        border-radius: var(--radius-full);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        background: linear-gradient(135deg, var(--primary-purple), var(--primary-orange));
+        transition: width 0.3s ease;
+    }
+
+    .progress-text {
+        display: block;
+        margin-top: var(--spacing-xs);
+        font-size: 0.875rem;
+        color: var(--text-gray);
+        font-weight: 600;
+    }
+
+    .module-title {
+        font-size: 1.5rem;
+        color: var(--text-dark);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .module-number {
+        display: inline-block;
+        background: linear-gradient(135deg, var(--primary-purple), var(--primary-orange));
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: var(--radius-md);
+        font-size: 0.875rem;
+        margin-right: var(--spacing-xs);
+    }
+
+    .module-description {
+        color: var(--text-gray);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .content-list {
+        margin-top: var(--spacing-md);
+    }
+
+    .content-list-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .content-item {
+        display: flex;
+        align-items: center;
+        padding: var(--spacing-sm);
+        background: white;
+        border: 1px solid var(--border-gray);
+        border-radius: var(--radius-md);
+        margin-bottom: var(--spacing-xs);
+        text-decoration: none;
+        color: var(--text-dark);
+        transition: all 0.2s ease;
+    }
+
+    .content-item:hover {
+        border-color: var(--primary-purple);
+        transform: translateX(4px);
+        box-shadow: 0 2px 8px rgba(107, 70, 193, 0.1);
+    }
+
+    .content-item.completed {
+        background: linear-gradient(135deg, rgba(107, 70, 193, 0.05), rgba(249, 115, 22, 0.05));
+        border-color: var(--primary-purple);
+    }
+
+    .content-item-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-gray);
+        border-radius: var(--radius-md);
+        font-size: 1.25rem;
+        margin-right: var(--spacing-sm);
+    }
+
+    .content-item.completed .content-item-icon {
+        background: linear-gradient(135deg, var(--primary-purple), var(--primary-orange));
+        color: white;
+    }
+
+    .content-item-info {
+        flex: 1;
+    }
+
+    .content-item-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .content-item-meta {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+    }
+</style>
+{% endblock %}
