@@ -12,7 +12,7 @@ urlpatterns = [
     path('', include('accounts.urls')),
     path('courses/', include('courses.urls')),
     path('cart/', include('cart.urls')),
-    # path('checkout/', include('checkout.urls')),
+    path('checkout/', include('checkout.urls')),
     path('api/', include('courses.api_urls')),
     path('api/', include('cart.api_urls')),
 ]

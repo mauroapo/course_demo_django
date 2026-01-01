@@ -3,13 +3,13 @@ from . import views
 
 urlpatterns = [
     # Checkout pages
-    path('', views.checkout_view, name='checkout'),
-    path('pix/', views.checkout_pix, name='checkout_pix'),
+    path('', views.free_checkout, name='checkout'),
+    # path('pix/', views.checkout_pix, name='checkout_pix'),
     
     # Payment status
-    path('success/<int:order_id>/', views.payment_success, name='payment_success'),
-    path('cancel/', views.payment_cancel, name='payment_cancel'),
-    path('check-status/<int:order_id>/', views.check_payment_status, name='check_payment_status'),
+    # path('success/<int:order_id>/', views.payment_success, name='payment_success'),
+    # path('cancel/', views.payment_cancel, name='payment_cancel'),
+    # path('check-status/<int:order_id>/', views.check_payment_status, name='check_payment_status'),
     
     # Webhook
     # path('webhook/stripe/', views.stripe_webhook, name='stripe_webhook'),

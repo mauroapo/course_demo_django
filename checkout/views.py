@@ -6,14 +6,21 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.http import HttpResponse, JsonResponse
-import stripe
+# import stripe
 import json
 
-from cart.models import Cart
+from cart.models import Cart, CartItem
 from courses.models import Enrollment
-from .models import Order, OrderItem
-from . import stripe_utils
+# from .models import Order, OrderItem
+# from . import stripe_utils
 
+from devutils.utils import db_debug
+
+
+@db_debug
+def test_query():
+    cart, _ = Cart.objects.get_or_create(user=1)
+    list(cart.items.all().select_related('course'))
 
 @login_required
 def checkout_view(request):
@@ -28,46 +35,46 @@ def checkout_view(request):
     
     # Create payment intent for this checkout
     try:
-        amount_cents = stripe_utils.convert_to_cents(total)
+        # amount_cents = stripe_utils.convert_to_cents(total)
         
-        # Create payment intent
-        payment_intent = stripe_utils.create_payment_intent(
-            amount=amount_cents,
-            currency='brl',
-            payment_method_types=['card'],
-            metadata={
-                'user_id': request.user.id,
-                'user_email': request.user.email,
-            }
-        )
+        # # Create payment intent
+        # payment_intent = stripe_utils.create_payment_intent(
+        #     amount=amount_cents,
+        #     currency='brl',
+        #     payment_method_types=['card'],
+        #     metadata={
+        #         'user_id': request.user.id,
+        #         'user_email': request.user.email,
+        #     }
+        # )
         
-        # Create order
-        order = Order.objects.create(
-            user=request.user,
-            total_amount=total,
-            currency='BRL',
-            stripe_payment_intent_id=payment_intent.id,
-            payment_method='credit_card',
-            payment_status='pending'
-        )
+        # # Create order
+        # order = Order.objects.create(
+        #     user=request.user,
+        #     total_amount=total,
+        #     currency='BRL',
+        #     stripe_payment_intent_id=payment_intent.id,
+        #     payment_method='credit_card',
+        #     payment_status='pending'
+        # )
         
-        # Create order items from cart
-        for cart_item in cart_items:
-            OrderItem.objects.create(
-                order=order,
-                course=cart_item.course,
-                price=cart_item.course.price
-            )
+        # # Create order items from cart
+        # for cart_item in cart_items:
+        #     OrderItem.objects.create(
+        #         order=order,
+        #         course=cart_item.course,
+        #         price=cart_item.course.price
+        #     )
         
         # Clear cart immediately after creating order
         cart.items.all().delete()
         
         context = {
-            'cart_items': list(order.items.all().select_related('course')),  # Use order items instead
+            'cart_items': list(cart.items.all().select_related('course')),  # Use order items instead
             'total': total,
-            'order': order,
-            'stripe_publishable_key': settings.STRIPE_PUBLISHABLE_KEY,
-            'client_secret': payment_intent.client_secret,
+            # 'order': order,
+            # 'stripe_publishable_key': settings.STRIPE_PUBLISHABLE_KEY,
+            # 'client_secret': payment_intent.client_secret,
         }
         
         return render(request, 'checkout/checkout.html', context)
@@ -296,3 +303,52 @@ def process_checkout(request):
 def checkout_success(request):
     """Legacy success page - redirect to my courses."""
     return redirect('my_courses')
+
+def free_checkout(request):
+    # """Handle successful payment - enroll user in courses."""
+    # payment_intent_id = payment_intent['id']
+    
+    # print(f"Handling payment success for: {payment_intent_id}")
+    
+    """Display checkout page with payment options."""
+    cart, _ = Cart.objects.get_or_create(user=request.user)
+    cart_items = cart.items.all().select_related('course')
+    total = cart.get_total()
+    
+    if not cart_items:
+        messages.warning(request, 'Seu carrinho está vazio.')
+        return redirect('cart')
+
+    try:
+        # # order = Order.objects.get(stripe_payment_intent_id=payment_intent_id)
+        # print(f"Found Order #{order.id} for user {order.user.email}")
+        
+        # # Update order status
+        # order.payment_status = 'succeeded'
+        # order.save()
+        # print(f"Order #{order.id} marked as succeeded")
+        
+        # Create enrollments
+        enrollments_created = 0
+        enrollment_created_courses = ()
+        for item in cart_items:
+            enrollment, created = Enrollment.objects.get_or_create(
+                user=cart.user,
+                course=item.course,
+                defaults={'source': 'individual'}
+            )
+            if created:
+                enrollments_created += 1
+                enrollment_created_courses = enrollment_created_courses + (item.course,)
+                print(f"✓ Enrolled user in: {item.course.name}")
+            else:
+                print(f"- User already enrolled in: {item.course.name}")
+        
+        print(f"Total enrollments created: {enrollments_created}")
+        CartItem.objects.filter(course_id__in=enrollment_created_courses).delete()
+        messages.success(request, 'Cursos adquiridos!')
+        return redirect('/courses/my-courses/')
+    except Exception as e:
+        print(f"ERROR handling payment success: {str(e)}")
+        import traceback
+        traceback.print_exc()

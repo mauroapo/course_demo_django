@@ -76,10 +76,16 @@ Then run:
 ```python
 from accounts.models import CustomUser
 user = CustomUser.objects.create_superuser(
-    email='admin@example.com',
+    email='admin@gmail.com',
     first_name='Admin',
     last_name='User',
     password='your-secure-password'
+)
+user = CustomUser.objects.create_user(
+    email='demo@adminuser.com',
+    first_name='Admin',
+    last_name='User',
+    password='admin123'
 )
 ```
 
