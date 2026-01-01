@@ -2,13 +2,6 @@
 
 Plataforma web para venda de cursos (B2C) e pacotes para organizações (B2B), desenvolvida para uma ONG com foco em inclusão e educação.
 
-## 🎨 Design
-
-A plataforma segue a identidade visual do site [invisibilidown.org](https://invisibilidown.org/), com:
-- Cores primárias: Roxo (#6B46C1) e Laranja (#F97316)
-- Design responsivo e moderno
-- Interface intuitiva com sidebar e carrosséis
-
 ## 🚀 Tecnologias
 
 - **Backend:** Django 4.2+ com Django REST Framework
@@ -32,7 +25,7 @@ A plataforma segue a identidade visual do site [invisibilidown.org](https://invi
 
 1. **Start the application:**
    ```bash
-   cd c:\Users\User\Documents\Projetos\Site\Invisibilidown
+   cd c:\Users\User\Documents\Projetos\Site\CourseApp
    docker-compose up -d
    docker compose exec web python manage.py migrate
 
@@ -43,7 +36,7 @@ A plataforma segue a identidade visual do site [invisibilidown.org](https://invi
    - Admin panel: **http://localhost:9000/admin**
 
 3. **Default admin credentials:**
-   - Email: `admin@invisibilidown.org`
+   - Email: `admin@example.org`
    - Password: (set via Django admin on first login)
 
 ---
@@ -286,7 +279,7 @@ docker-compose ps
 docker stats
 
 # Inspect specific container
-docker inspect invisibilidown-web-1
+docker inspect courseapp-web-1
 ```
 
 ---
@@ -359,7 +352,7 @@ docker-compose exec web python manage.py migrate
 ## 🗂️ Project Structure
 
 ```
-Invisibilidown/
+CourseApp/
 ├── accounts/          # Authentication & user profiles
 ├── courses/           # Course catalog & enrollments
 ├── cart/              # Shopping cart
