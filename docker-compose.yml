@@ -10,7 +10,7 @@ services:
       - POSTGRES_USER=ong_user
       - POSTGRES_PASSWORD=ong_password
     ports:
-      - "5432:5432"
+      - "5433:5433"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ong_user -d ong_platform"]
       interval: 10s
@@ -19,7 +19,7 @@ services:
 
   web:
     build: .
-    command: gunicorn --bind 0.0.0.0:8001 --workers 3 ong_platform.wsgi:application
+    command: gunicorn --bind 0.0.0.0:8001 --workers 2 --threads 2 --timeout 180 ong_platform.wsgi:application
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
@@ -29,7 +29,7 @@ services:
     environment:
       - DEBUG=True
       - SECRET_KEY=django-insecure-dev-key-change-in-production
-      - DATABASE_URL=postgresql://ong_user:ong_password@db:5432/ong_platform
+      - DATABASE_URL=postgresql://ong_user:ong_password@db:5433/ong_platform
       - ALLOWED_HOSTS=localhost,127.0.0.1,80.91.86.135,lunar.salesforcedevhelp.com,solar.salesforcedevhelp.com,salesforcedevhelp.com
       - COURSE_AREA_BASE_URL=http://localhost:7000
     depends_on:
