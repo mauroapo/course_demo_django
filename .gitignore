@@ -34,3 +34,7 @@ Thumbs.db
 
 # Docker
 *.pid
+
+ong_platform/
+
+ong_platform
