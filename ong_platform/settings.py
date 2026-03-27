@@ -15,7 +15,29 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-dev-key-change-in-pro
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
+#ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
+
+
+ALLOWED_HOSTS  = [
+    "162.240.98.188",
+    "162.240.98.188:8001",
+    "https://lms.indes.org.br",
+    "lms.indes.org.br",
+    "https://appbemestar.com.br",
+    "http://80.91.86.135",
+    "http://lunar.salesforcedevhelp.com",
+    "https://lunar.salesforcedevhelp.com",
+    "http://salesforcedevhelp.com",
+    "https://salesforcedevhelp.com",
+    "http://127.0.0.1:6000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost:9000",
+    "http://127.0.0.1:9000",
+]
+
+
+
 
 # Application definition
 INSTALLED_APPS = [
@@ -160,6 +182,10 @@ REST_FRAMEWORK = {
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
+    "162.240.98.188",
+    "162.240.98.188:8001",
+    "https://lms.indes.org.br",
+    "https://appbemestar.com.br",
     "http://80.91.86.135",
     "http://lunar.salesforcedevhelp.com",
     "https://lunar.salesforcedevhelp.com",
@@ -174,6 +200,12 @@ CORS_ALLOWED_ORIGINS = [
 
 # Security settings
 CSRF_TRUSTED_ORIGINS = [
+    "162.240.98.188",
+    "162.240.98.188:8001",
+    "https://lms.appbemestar.com.br",
+    "https://appbemestar.com.br",
+    "https://lms.indes.org.br",
+    "lms.indes.org.br",
     "http://80.91.86.135",
     "http://lunar.salesforcedevhelp.com",
     "https://lunar.salesforcedevhelp.com",

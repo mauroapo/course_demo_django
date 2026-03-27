@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   db:
@@ -9,8 +9,6 @@ services:
       - POSTGRES_DB=ong_platform
       - POSTGRES_USER=ong_user
       - POSTGRES_PASSWORD=ong_password
-    ports:
-      - "5433:5433"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ong_user -d ong_platform"]
       interval: 10s
@@ -19,22 +17,32 @@ services:
 
   web:
     build: .
-    command: gunicorn --bind 0.0.0.0:8001 --workers 2 --threads 2 --timeout 180 ong_platform.wsgi:application
+    command: gunicorn --chdir /app --bind 0.0.0.0:8001 --workers 2 --threads 2 --timeout 180 ong_platform.wsgi:application
     volumes:
-      - .:/app
+      - ./:/app
       - static_volume:/app/staticfiles
       - media_volume:/app/media
-    ports:
-      - "8001:8001"
+    expose:
+      - "8001"
     environment:
       - DEBUG=True
       - SECRET_KEY=django-insecure-dev-key-change-in-production
-      - DATABASE_URL=postgresql://ong_user:ong_password@db:5433/ong_platform
-      - ALLOWED_HOSTS=localhost,127.0.0.1,80.91.86.135,lunar.salesforcedevhelp.com,solar.salesforcedevhelp.com,salesforcedevhelp.com
-      - COURSE_AREA_BASE_URL=http://localhost:7000
+      - DATABASE_URL=postgresql://ong_user:ong_password@db:5432/ong_platform
+      - ALLOWED_HOSTS=lms.appbemestar.com.br,162.240.98.188,localhost,127.0.0.1,80.91.86.135,lunar.salesforcedevhelp.com,salesforcedevhelp.com
     depends_on:
       db:
         condition: service_healthy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8001:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media:ro
+    depends_on:
+     - web
+
 
 volumes:
   postgres_data:
