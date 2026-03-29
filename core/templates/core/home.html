@@ -24,13 +24,15 @@
         {% endfor %}
     </div>
     {% else %}
-    <p style="color: var(--text-gray);">Você ainda não possui cursos. <a href="{% url 'acquire_courses' %}"
-            style="color: var(--primary-purple); font-weight: 600;">Adquira seu primeiro curso!</a></p>
+    <p style="color: var(--text-gray);">Você ainda não possui cursos. 
+        <!-- <a href="{% url 'acquire_courses' %}"
+            style="color: var(--primary-purple); font-weight: 600;">Adquira seu primeiro curso!</a> -->
+        </p>
     {% endif %}
 </div>
 
 <!-- Cursos Mais Recentes Carousel -->
-<div class="carousel-container">
+<!-- <div class="carousel-container">
     <h2 class="carousel-title">Cursos Mais Recentes</h2>
     {% if recent_courses %}
     <div class="carousel">
@@ -52,5 +54,5 @@
     {% else %}
     <p style="color: var(--text-gray);">Nenhum curso disponível no momento.</p>
     {% endif %}
-</div>
+</div> -->
 {% endblock %}
