@@ -1,0 +1,53 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Turmas - Plataforma de Cursos{% endblock %}
+
+{% block content %}
+<h1 class="page-title">🏫 Turmas</h1>
+
+{% if teaching %}
+<div class="section-header" style="margin-bottom: var(--spacing-sm);">
+    <h2 style="font-size:1.1rem; color: var(--text-gray); font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">Turmas que leciono</h2>
+</div>
+<div class="grid">
+    {% for turma in teaching %}
+    <a href="{% url 'turma_detail' turma.id %}">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title">{{ turma.name }}</h3>
+                <p class="card-description">{{ turma.course.name|default:"" }}</p>
+                <span style="font-size:0.8rem; color: var(--text-gray);">👨‍🏫 Professor</span>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if enrolled %}
+<div class="section-header" style="margin: var(--spacing-lg) 0 var(--spacing-sm);">
+    <h2 style="font-size:1.1rem; color: var(--text-gray); font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">Turmas que participo</h2>
+</div>
+<div class="grid">
+    {% for turma in enrolled %}
+    <a href="{% url 'turma_detail' turma.id %}">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title">{{ turma.name }}</h3>
+                <p class="card-description">{{ turma.course.name }}</p>
+                <span style="font-size:0.8rem; color: var(--text-gray);">👨‍🎓 Aluno</span>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if not teaching and not enrolled %}
+<div class="card">
+    <div class="card-body text-center">
+        <p style="color: var(--text-gray);">Você ainda não está vinculado a nenhuma turma.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

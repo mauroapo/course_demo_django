@@ -1,7 +1,8 @@
 from django.contrib import admin
 from .models import (
     Course, Enrollment, Module, Lesson, Question, QuestionOption,
-    Quiz, QuizQuestion, StudentProgress, QuizAttempt, StudentAnswer
+    Quiz, QuizQuestion, StudentProgress, QuizAttempt, StudentAnswer,
+    Turma, PresenceSession, PresenceRecord
 )
 
 
@@ -281,3 +282,82 @@ class StudentAnswerAdmin(admin.ModelAdmin):
     search_fields = ['attempt__user__email', 'question__question_text']
     readonly_fields = ['attempt', 'question', 'selected_option', 'text_answer', 'is_correct', 'points_earned']
     autocomplete_fields = ['attempt', 'question']
+
+
+# ============================================================================
+# TURMA / PRESENCE CONTROL ADMIN
+# ============================================================================
+
+class PresenceSessionInline(admin.TabularInline):
+    """Inline for presence sessions within a turma."""
+    model = PresenceSession
+    extra = 0
+    fields = ['date', 'is_open', 'created_at']
+    readonly_fields = ['created_at']
+    ordering = ['-date']
+
+
+class PresenceRecordInline(admin.TabularInline):
+    """Inline for presence records within a session."""
+    model = PresenceRecord
+    extra = 0
+    fields = ['student', 'registered_at']
+    readonly_fields = ['student', 'registered_at']
+    can_delete = False
+
+
+@admin.register(Turma)
+class TurmaAdmin(admin.ModelAdmin):
+    """Admin for Turma model."""
+    list_display = ['name', 'professor', 'student_count', 'is_active', 'created_at']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['name', 'professor__email']
+    readonly_fields = ['created_at']
+    filter_horizontal = ['students']
+    autocomplete_fields = ['professor']
+    inlines = [PresenceSessionInline]
+
+    fieldsets = (
+        ('Informações da Turma', {
+            'fields': ('name', 'professor', 'is_active', 'created_at')
+        }),
+        ('Alunos', {
+            'fields': ('students',),
+        }),
+    )
+
+    def student_count(self, obj):
+        return obj.students.count()
+    student_count.short_description = 'Alunos'
+
+
+@admin.register(PresenceSession)
+class PresenceSessionAdmin(admin.ModelAdmin):
+    """Admin for PresenceSession model."""
+    list_display = ['turma', 'date', 'is_open', 'present_count', 'created_at']
+    list_filter = ['is_open', 'date']
+    search_fields = ['turma__name']
+    readonly_fields = ['created_at']
+    autocomplete_fields = ['turma']
+    inlines = [PresenceRecordInline]
+
+    fieldsets = (
+        ('Sessão', {
+            'fields': ('turma', 'date', 'is_open', 'created_at')
+        }),
+    )
+
+    def present_count(self, obj):
+        return obj.records.count()
+    present_count.short_description = 'Presenças'
+
+
+@admin.register(PresenceRecord)
+class PresenceRecordAdmin(admin.ModelAdmin):
+    """Admin for PresenceRecord model."""
+    list_display = ['student', 'session', 'registered_at']
+    list_filter = ['registered_at']
+    search_fields = ['student__email', 'session__turma__name']
+    readonly_fields = ['registered_at']
+    autocomplete_fields = ['session', 'student']
+

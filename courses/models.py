@@ -399,3 +399,90 @@ class StudentAnswer(models.Model):
         verbose_name = 'Student Answer'
         verbose_name_plural = 'Student Answers'
         unique_together = ['attempt', 'question']
+
+
+# ============================================================================
+# PRESENCE CONTROL (TURMAS) MODELS
+# ============================================================================
+
+class Turma(models.Model):
+    """Class/Cohort managed by a professor with a roster of students."""
+    
+    name = models.CharField(max_length=200, verbose_name='Nome da Turma')
+    professor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='teaching_turmas',
+        verbose_name='Professor'
+    )
+    students = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        related_name='enrolled_turmas',
+        verbose_name='Alunos'
+    )
+    is_active = models.BooleanField(default=True, verbose_name='Ativa')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Criada em')
+    
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        verbose_name = 'Turma'
+        verbose_name_plural = 'Turmas'
+        ordering = ['-created_at']
+
+
+class PresenceSession(models.Model):
+    """A specific session where presences can be recorded."""
+    
+    turma = models.ForeignKey(
+        Turma,
+        on_delete=models.CASCADE,
+        related_name='presence_sessions',
+        verbose_name='Turma'
+    )
+    date = models.DateField(verbose_name='Data')
+    is_open = models.BooleanField(
+        default=False,
+        verbose_name='Chamada Aberta',
+        help_text='Indicates if students can register presence right now.'
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Criada em')
+    
+    def __str__(self):
+        return f'{self.turma.name} - {self.date}'
+    
+    class Meta:
+        verbose_name = 'Presence Session'
+        verbose_name_plural = 'Presence Sessions'
+        ordering = ['-date', '-created_at']
+
+
+class PresenceRecord(models.Model):
+    """A single student check-in for a specific presence session."""
+    
+    session = models.ForeignKey(
+        PresenceSession,
+        on_delete=models.CASCADE,
+        related_name='records',
+        verbose_name='Sessão de Presença'
+    )
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='presence_records',
+        verbose_name='Aluno'
+    )
+    registered_at = models.DateTimeField(auto_now_add=True, verbose_name='Registrada em')
+    
+    def __str__(self):
+        return f'{self.student.email} present at {self.session}'
+    
+    class Meta:
+        verbose_name = 'Presence Record'
+        verbose_name_plural = 'Presence Records'
+        ordering = ['-registered_at']
+        unique_together = ['session', 'student']
+

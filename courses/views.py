@@ -8,7 +8,8 @@ from django.utils import timezone
 from django.http import JsonResponse
 from .models import (
     Course, Enrollment, Module, Lesson, Quiz, Question,
-    QuestionOption, QuizQuestion, StudentProgress, QuizAttempt, StudentAnswer
+    QuestionOption, QuizQuestion, StudentProgress, QuizAttempt, StudentAnswer,
+    Turma, PresenceSession, PresenceRecord
 )
 
 
@@ -361,3 +362,145 @@ def quiz_result_view(request, attempt_id):
         'course': attempt.quiz.module.course,
         'answers': answers
     })
+
+
+# ============================================================================
+# TURMA / PRESENCE CONTROL VIEWS
+# ============================================================================
+
+@login_required
+def turma_list_view(request):
+    """Show turmas for the current user: as professor or as student."""
+    teaching = Turma.objects.filter(professor=request.user, is_active=True)
+    enrolled = Turma.objects.filter(students=request.user, is_active=True)
+    return render(request, 'courses/turma_list.html', {
+        'teaching': teaching,
+        'enrolled': enrolled,
+    })
+
+
+@login_required
+def turma_detail_view(request, turma_id):
+    """Show turma detail — roster + presence sessions. View depends on whether user is professor or student."""
+    turma = get_object_or_404(Turma, id=turma_id, is_active=True)
+
+    is_professor = turma.professor == request.user
+    is_student = turma.students.filter(id=request.user.id).exists()
+
+    if not is_professor and not is_student:
+        messages.error(request, 'Você não tem acesso a esta turma.')
+        return redirect('turma_list')
+
+    students = turma.students.all()
+    sessions = turma.presence_sessions.order_by('-date', '-created_at')
+
+    # Presence counts per session for the summary table
+    sessions_data = []
+    for s in sessions:
+        count = s.records.count()
+        sessions_data.append({'session': s, 'count': count})
+
+    # For students: check which sessions are open and if they already checked in
+    open_sessions = []
+    if is_student:
+        for s in sessions.filter(is_open=True):
+            already_checked = s.records.filter(student=request.user).exists()
+            open_sessions.append({'session': s, 'already_checked': already_checked})
+
+    return render(request, 'courses/turma_detail.html', {
+        'turma': turma,
+        'is_professor': is_professor,
+        'is_student': is_student,
+        'students': students,
+        'sessions_data': sessions_data,
+        'open_sessions': open_sessions,
+    })
+
+
+@login_required
+def presence_session_create_view(request, turma_id):
+    """Professor creates a new presence session."""
+    turma = get_object_or_404(Turma, id=turma_id, is_active=True, professor=request.user)
+
+    if request.method == 'POST':
+        date_str = request.POST.get('date')
+        if date_str:
+            from datetime import date as dt
+            try:
+                session_date = dt.fromisoformat(date_str)
+            except ValueError:
+                messages.error(request, 'Data inválida.')
+                return redirect('presence_session_create', turma_id=turma.id)
+
+            session = PresenceSession.objects.create(turma=turma, date=session_date, is_open=False)
+            messages.success(request, f'Lista de presença para {session_date.strftime("%d/%m/%Y")} criada.')
+            return redirect('presence_session_detail', session_id=session.id)
+
+    from datetime import date as dt
+    today = dt.today().isoformat()
+    return render(request, 'courses/presence_session_form.html', {
+        'turma': turma,
+        'today': today,
+    })
+
+
+@login_required
+def presence_session_detail_view(request, session_id):
+    """Professor views session — who attended, who didn't. Includes toggle."""
+    session = get_object_or_404(PresenceSession, id=session_id)
+    turma = session.turma
+
+    if turma.professor != request.user:
+        messages.error(request, 'Apenas o professor pode ver este painel.')
+        return redirect('turma_list')
+
+    all_students = turma.students.all()
+    present_ids = session.records.values_list('student_id', flat=True)
+    present_students = all_students.filter(id__in=present_ids)
+    absent_students = all_students.exclude(id__in=present_ids)
+
+    return render(request, 'courses/presence_session_detail.html', {
+        'session': session,
+        'turma': turma,
+        'present_students': present_students,
+        'absent_students': absent_students,
+    })
+
+
+@login_required
+def presence_session_toggle_view(request, session_id):
+    """Professor toggles is_open on a session via POST."""
+    session = get_object_or_404(PresenceSession, id=session_id)
+
+    if session.turma.professor != request.user:
+        messages.error(request, 'Permissão negada.')
+        return redirect('turma_list')
+
+    if request.method == 'POST':
+        session.is_open = not session.is_open
+        session.save()
+        status = 'aberta' if session.is_open else 'fechada'
+        messages.success(request, f'Chamada {status}.')
+
+    return redirect('presence_session_detail', session_id=session.id)
+
+
+@login_required
+def presence_checkin_view(request, session_id):
+    """Student registers presence in an open session."""
+    session = get_object_or_404(PresenceSession, id=session_id, is_open=True)
+    turma = session.turma
+
+    if not turma.students.filter(id=request.user.id).exists():
+        messages.error(request, 'Você não pertence a esta turma.')
+        return redirect('turma_list')
+
+    if request.method == 'POST':
+        _, created = PresenceRecord.objects.get_or_create(session=session, student=request.user)
+        if created:
+            messages.success(request, 'Presença registrada com sucesso! ✅')
+        else:
+            messages.info(request, 'Você já registrou presença nesta aula.')
+
+    return redirect('turma_detail', turma_id=turma.id)
+

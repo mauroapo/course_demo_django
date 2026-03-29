@@ -35,24 +35,30 @@
                         </a>
                     </li>
                     <li>
+                        <a href="{% url 'turma_list' %}"
+                            class="{% if '/courses/turmas' in request.path %}active{% endif %}">
+                            🏫 Turmas
+                        </a>
+                    </li>
+                    <!-- <li>
                         <a href="{% url 'acquire_courses' %}"
                             class="{% if request.path == '/courses/acquire/' %}active{% endif %}">
                             🛒 Adquirir Cursos
                         </a>
-                    </li>
+                    </li> -->
                     <li>
                         <a href="{% url 'account' %}" class="{% if request.path == '/account/' %}active{% endif %}">
                             👤 Minha Conta
                         </a>
                     </li>
-                    <li>
+                    <!-- <li>
                         <a href="{% url 'cart' %}" class="{% if request.path == '/cart/' %}active{% endif %}">
                             🛍️ Carrinho
                             {% if cart_item_count > 0 %}
                             <span class="cart-badge">{{ cart_item_count }}</span>
                             {% endif %}
                         </a>
-                    </li>
+                    </li> -->
                 </ul>
             </nav>
 
