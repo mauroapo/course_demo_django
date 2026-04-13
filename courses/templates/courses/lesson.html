@@ -33,6 +33,9 @@
             {% elif 'vimeo.com' in lesson.video_url %}
             <iframe src="{{ lesson.video_url }}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture"
                 allowfullscreen></iframe>
+            {% elif 'drive.google.com' in lesson.video_url %}
+            <iframe src="{{ lesson.embed_video_url }}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture"
+                allowfullscreen></iframe>
             {% else %}
             <p>Vídeo disponível: <a href="{{ lesson.video_url }}" target="_blank">{{ lesson.video_url }}</a></p>
             {% endif %}

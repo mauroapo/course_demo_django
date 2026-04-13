@@ -115,6 +115,19 @@ class Lesson(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
     
+    @property
+    def embed_video_url(self):
+        """Returns the appropriate embed URL for the video (e.g., converting Drive view links to preview)."""
+        if not self.video_url:
+            return ""
+            
+        url = self.video_url
+        if 'drive.google.com' in url and '/view' in url:
+            view_idx = url.find('/view')
+            if view_idx != -1:
+                return url[:view_idx] + '/preview'
+        return url
+
     def __str__(self):
         return f'{self.module.title} - {self.title}'
     
