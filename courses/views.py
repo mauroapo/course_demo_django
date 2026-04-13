@@ -504,3 +504,23 @@ def presence_checkin_view(request, session_id):
 
     return redirect('turma_detail', turma_id=turma.id)
 
+
+@login_required
+def presence_remove_view(request, session_id, student_id):
+    """Professor removes a student's presence from a session."""
+    session = get_object_or_404(PresenceSession, id=session_id)
+    
+    if session.turma.professor != request.user:
+        messages.error(request, 'Permissão negada.')
+        return redirect('turma_list')
+
+    if request.method == 'POST':
+        record = PresenceRecord.objects.filter(session=session, student_id=student_id).first()
+        if record:
+            record.delete()
+            messages.success(request, 'Presença removida com sucesso.')
+        else:
+            messages.error(request, 'Registro de presença não encontrado.')
+
+    return redirect('presence_session_detail', session_id=session.id)
+

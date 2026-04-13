@@ -21,4 +21,5 @@ urlpatterns = [
     path('turmas/session/<int:session_id>/', views.presence_session_detail_view, name='presence_session_detail'),
     path('turmas/session/<int:session_id>/toggle/', views.presence_session_toggle_view, name='presence_session_toggle'),
     path('turmas/session/<int:session_id>/checkin/', views.presence_checkin_view, name='presence_checkin'),
+    path('turmas/session/<int:session_id>/remove/<int:student_id>/', views.presence_remove_view, name='presence_remove'),
 ]

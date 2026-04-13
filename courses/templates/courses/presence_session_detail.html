@@ -59,9 +59,17 @@
             {% if present_students %}
             <ul style="list-style:none; padding:0; margin:0;">
                 {% for student in present_students %}
-                <li style="padding: 8px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.9rem;">
-                    {{ student.get_full_name|default:student.email }}
-                    <div style="color: var(--text-gray); font-size:0.78rem;">{{ student.email }}</div>
+                <li style="display:flex; justify-content:space-between; align-items:center; padding: 8px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.9rem;">
+                    <div>
+                        {{ student.get_full_name|default:student.email }}
+                        <div style="color: var(--text-gray); font-size:0.78rem;">{{ student.email }}</div>
+                    </div>
+                    <form method="post" action="{% url 'presence_remove' session.id student.id %}" style="margin:0;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm" style="background:rgba(248,113,113,0.1); color:#f87171; border:1px solid rgba(248,113,113,0.2); padding: 4px 8px; font-size: 0.8rem; cursor:pointer;" onclick="return confirm('Tem certeza que deseja remover a presença deste aluno?');" title="Remover presença">
+                            Remover
+                        </button>
+                    </form>
                 </li>
                 {% endfor %}
             </ul>
