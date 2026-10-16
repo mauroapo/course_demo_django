@@ -19,6 +19,13 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 
 ALLOWED_HOSTS  = [
+    "lunar.salesforcedevhelp.com",
+    "solar.salesforcedevhelp.com",
+    "salesforcedevhelp.com",
+    "www.salesforcedevhelp.com",
+    "lms.appbemestar.com.br",
+    "appbemestar.com.br",
+
     "162.240.98.188",
     "162.240.98.188:8001",
     "https://lms.indes.org.br",
@@ -182,8 +189,8 @@ REST_FRAMEWORK = {
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
-    "162.240.98.188",
-    "162.240.98.188:8001",
+    "https://162.240.98.188",
+    "https://162.240.98.188:8001",
     "https://lms.indes.org.br",
     "https://appbemestar.com.br",
     "http://80.91.86.135",
@@ -200,12 +207,12 @@ CORS_ALLOWED_ORIGINS = [
 
 # Security settings
 CSRF_TRUSTED_ORIGINS = [
-    "162.240.98.188",
-    "162.240.98.188:8001",
+    "https://162.240.98.188",
+    "https://162.240.98.188:8001",
     "https://lms.appbemestar.com.br",
     "https://appbemestar.com.br",
     "https://lms.indes.org.br",
-    "lms.indes.org.br",
+    "https://lms.indes.org.br",
     "http://80.91.86.135",
     "http://lunar.salesforcedevhelp.com",
     "https://lunar.salesforcedevhelp.com",
